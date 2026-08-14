@@ -107,12 +107,17 @@ export default function NewPost() {
         >
           ←
         </button>
-        <h1 className="font-display text-xl font-semibold text-foreground">Nuova birra</h1>
+        <h1 className="font-display text-xl font-black uppercase tracking-wide text-foreground">
+          Nuova birra
+        </h1>
       </div>
 
       {!previewUrl && (
-        <label className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-card-border bg-card py-20 text-center">
-          <span className="text-5xl">📸</span>
+        <label className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-3 rounded-md border-2 border-dashed border-card-border bg-card py-20 text-center">
+          <svg viewBox="0 0 24 24" width="48" height="48" className="text-muted" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+            <path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" strokeLinejoin="round" />
+            <circle cx="12" cy="14" r="3.5" />
+          </svg>
           <span className="text-lg font-medium text-foreground">Scatta la foto</span>
           <input
             type="file"
@@ -130,7 +135,7 @@ export default function NewPost() {
           <img
             src={previewUrl}
             alt="Anteprima"
-            className="aspect-square w-full rounded-2xl object-cover"
+            className="aspect-square w-full rounded-md object-cover"
           />
 
           <div className="flex flex-col gap-1">
@@ -143,7 +148,7 @@ export default function NewPost() {
               value={birra}
               onChange={(e) => setBirra(e.target.value)}
               placeholder="Es. Ichnusa"
-              className="rounded-xl border border-card-border bg-card px-4 py-3 text-foreground outline-none focus:border-accent"
+              className="rounded-md border border-card-border bg-card px-4 py-3 text-foreground outline-none focus:border-red"
             />
             <datalist id="beer-options">
               {beerOptions.map((name) => (
@@ -161,16 +166,16 @@ export default function NewPost() {
               value={luogo}
               onChange={(e) => setLuogo(e.target.value)}
               placeholder="Es. Bar Centrale"
-              className="rounded-xl border border-card-border bg-card px-4 py-3 text-foreground outline-none focus:border-accent"
+              className="rounded-md border border-card-border bg-card px-4 py-3 text-foreground outline-none focus:border-red"
             />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red">{error}</p>}
 
           <button
             type="submit"
             disabled={submitting}
-            className="mt-auto w-full rounded-full bg-accent px-5 py-3 text-lg font-medium text-accent-foreground disabled:opacity-50"
+            className="mt-auto w-full rounded-md bg-red px-5 py-3 text-lg font-semibold text-on-accent disabled:opacity-50"
           >
             {submitting ? "Pubblico…" : "Pubblica"}
           </button>

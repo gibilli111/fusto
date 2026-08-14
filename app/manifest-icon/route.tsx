@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#d97706",
+          background: "#c0392b",
           fontSize: Math.round(size * 0.6),
         }}
       >

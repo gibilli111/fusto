@@ -1,18 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { IBM_Plex_Sans, Barlow_Condensed } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import AuthGate from "@/components/AuthGate";
 
-const inter = Inter({
-  variable: "--font-inter",
+const plex = IBM_Plex_Sans({
+  variable: "--font-plex",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+const barlow = Barlow_Condensed({
+  variable: "--font-barlow",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["600", "900"],
 });
 
 export const metadata: Metadata = {
@@ -26,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#d97706",
+  themeColor: "#c0392b",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -36,7 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="it"
-      className={`${inter.variable} ${fraunces.variable} h-full antialiased`}
+      className={`${plex.variable} ${barlow.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
         <AuthProvider>

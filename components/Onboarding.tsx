@@ -74,8 +74,23 @@ export default function Onboarding() {
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-6 px-6 text-center">
-      <span className="text-6xl">🍺</span>
-      <h1 className="font-display text-3xl font-semibold text-foreground">Fusto</h1>
+      <svg viewBox="0 0 100 120" width="44" height="52" className="text-red" aria-hidden="true">
+        <path
+          d="M15 10 h55 v90 a10 10 0 0 1 -10 10 h-35 a10 10 0 0 1 -10 -10 z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="7"
+        />
+        <path
+          d="M70 30 h8 a10 10 0 0 1 10 10 v20 a10 10 0 0 1 -10 10 h-8"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="7"
+        />
+      </svg>
+      <h1 className="font-display text-4xl font-black uppercase tracking-wide text-foreground">
+        Fusto
+      </h1>
 
       {step === "nickname" && (
         <form onSubmit={handleNicknameSubmit} className="flex w-full max-w-xs flex-col gap-3">
@@ -89,12 +104,12 @@ export default function Onboarding() {
             onChange={(e) => setNickname(e.target.value)}
             maxLength={24}
             placeholder="Il tuo nickname"
-            className="w-full rounded-xl border border-card-border bg-card px-4 py-3 text-lg text-foreground outline-none focus:border-accent"
+            className="w-full rounded-md border border-card-border bg-card px-4 py-3 text-lg text-foreground outline-none focus:border-red"
           />
           <button
             type="submit"
             disabled={submitting || nickname.trim().length === 0}
-            className="w-full rounded-full bg-accent px-5 py-3 text-lg font-medium text-accent-foreground disabled:opacity-50"
+            className="w-full rounded-md bg-red px-5 py-3 text-lg font-semibold text-on-accent disabled:opacity-50"
           >
             Continua
           </button>
@@ -116,12 +131,12 @@ export default function Onboarding() {
             value={pin}
             onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
             placeholder="••••"
-            className="w-full rounded-xl border border-card-border bg-card px-4 py-3 text-center text-3xl tracking-[0.5em] text-foreground outline-none focus:border-accent"
+            className="w-full rounded-md border border-card-border bg-card px-4 py-3 text-center text-3xl tracking-[0.5em] text-foreground outline-none focus:border-red"
           />
           <button
             type="submit"
             disabled={submitting || pin.length !== 4}
-            className="w-full rounded-full bg-accent px-5 py-3 text-lg font-medium text-accent-foreground disabled:opacity-50"
+            className="w-full rounded-md bg-red px-5 py-3 text-lg font-semibold text-on-accent disabled:opacity-50"
           >
             {step === "pin-new" ? "Crea il mio profilo" : "Entra"}
           </button>
@@ -139,7 +154,7 @@ export default function Onboarding() {
         </form>
       )}
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red">{error}</p>}
     </main>
   );
 }
