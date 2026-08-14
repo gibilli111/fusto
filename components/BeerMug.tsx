@@ -1,14 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-
-type DeviceOrientationEventIOS = typeof DeviceOrientationEvent & {
-  requestPermission?: () => Promise<"granted" | "denied">;
-};
-
-// Persiste per la sessione della pagina: se l'utente ha già concesso il
-// permesso su un altro profilo visitato, non richiederlo di nuovo.
-let orientationGranted = false;
+import { useEffect, useRef } from "react";
 
 type MugOpts = {
   width: number;
@@ -20,7 +12,6 @@ type MugOpts = {
   handleReach: number;
   topRY: number;
   foamH: number;
-  maxAngle: number;
   fillLevel: number;
   liquidTop: string;
   liquidMid: string;
@@ -31,9 +22,8 @@ type MugOpts = {
 };
 
 function drawMug(canvas: HTMLCanvasElement, opts: MugOpts) {
-  const noop = { setTarget: () => {}, stop: () => {} };
   const ctx = canvas.getContext("2d");
-  if (!ctx) return noop;
+  if (!ctx) return { stop: () => {} };
 
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const cssW = opts.width;
@@ -80,9 +70,6 @@ function drawMug(canvas: HTMLCanvasElement, opts: MugOpts) {
     ctx!.quadraticCurveTo(outerTopX + opts.handleReach, opts.halfH * 0.55, outerTopX - 6, opts.halfH * 0.55);
   }
 
-  let angle = 0;
-  let velocity = 0;
-  let targetAngle = 0;
   const liquidTopY = innerBotY - opts.fillLevel * (innerBotY - innerTopY);
 
   const colCount = 5;
@@ -109,14 +96,6 @@ function drawMug(canvas: HTMLCanvasElement, opts: MugOpts) {
     };
   });
 
-  function update() {
-    const stiffness = 0.1;
-    const damping = 0.86;
-    velocity += (targetAngle - angle) * stiffness;
-    velocity *= damping;
-    angle += velocity;
-  }
-
   function draw(time: number) {
     ctx!.clearRect(0, 0, cssW, cssH);
     ctx!.save();
@@ -127,9 +106,6 @@ function drawMug(canvas: HTMLCanvasElement, opts: MugOpts) {
     glow.addColorStop(1, "rgba(0,0,0,0)");
     ctx!.fillStyle = glow;
     ctx!.fillRect(-cssW, -cssH, cssW * 2, cssH * 2);
-
-    ctx!.save();
-    ctx!.rotate(angle);
 
     ctx!.beginPath();
     ctx!.ellipse(4, botY + 6, outerBotX * 0.85, 9, 0, 0, Math.PI * 2);
@@ -157,13 +133,9 @@ function drawMug(canvas: HTMLCanvasElement, opts: MugOpts) {
     ctx!.fillStyle = bodyGrad;
     ctx!.fill();
 
-    ctx!.restore();
-
     ctx!.save();
-    ctx!.rotate(angle);
     innerCavity();
     ctx!.clip();
-    ctx!.rotate(-angle);
 
     const liqGrad = ctx!.createLinearGradient(0, liquidTopY, 0, innerBotY);
     liqGrad.addColorStop(0, opts.liquidTop);
@@ -223,9 +195,6 @@ function drawMug(canvas: HTMLCanvasElement, opts: MugOpts) {
     ctx!.restore();
 
     ctx!.save();
-    ctx!.rotate(angle);
-
-    ctx!.save();
     outerBody();
     ctx!.clip();
 
@@ -278,21 +247,16 @@ function drawMug(canvas: HTMLCanvasElement, opts: MugOpts) {
     ctx!.stroke();
 
     ctx!.restore();
-    ctx!.restore();
   }
 
   let raf = 0;
   function loop(time: number) {
-    update();
     draw(time);
     raf = requestAnimationFrame(loop);
   }
   raf = requestAnimationFrame(loop);
 
   return {
-    setTarget(a: number) {
-      targetAngle = Math.max(-opts.maxAngle, Math.min(opts.maxAngle, a));
-    },
     stop() {
       cancelAnimationFrame(raf);
     },
@@ -301,13 +265,11 @@ function drawMug(canvas: HTMLCanvasElement, opts: MugOpts) {
 
 export default function BeerMug({ fillPercent }: { fillPercent: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [needsPermission, setNeedsPermission] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const maxAngle = (22 * Math.PI) / 180;
     const clamped = Math.max(0, Math.min(100, fillPercent));
     const mug = drawMug(canvas, {
       width: 200,
@@ -319,7 +281,6 @@ export default function BeerMug({ fillPercent }: { fillPercent: number }) {
       handleReach: 38,
       topRY: 11,
       foamH: 17,
-      maxAngle,
       fillLevel: clamped / 100,
       liquidTop: "#f4c65a",
       liquidMid: "#d99a2b",
@@ -329,64 +290,10 @@ export default function BeerMug({ fillPercent }: { fillPercent: number }) {
       glow: "rgba(214,175,60,0.2)",
     });
 
-    function handleOrientation(e: DeviceOrientationEvent) {
-      const gamma = e.gamma || 0;
-      mug.setTarget((gamma / 45) * maxAngle);
-    }
-
-    function handlePointerMove(e: PointerEvent) {
-      const cxp = window.innerWidth / 2;
-      const rel = (e.clientX - cxp) / cxp;
-      mug.setTarget(rel * maxAngle);
-    }
-
-    const OrientationEvt = window.DeviceOrientationEvent as DeviceOrientationEventIOS | undefined;
-
-    (function attach() {
-      if (orientationGranted && OrientationEvt) {
-        window.addEventListener("deviceorientation", handleOrientation);
-      } else if (OrientationEvt && typeof OrientationEvt.requestPermission === "function") {
-        setNeedsPermission(true);
-        window.addEventListener("pointermove", handlePointerMove);
-      } else if (OrientationEvt) {
-        window.addEventListener("deviceorientation", handleOrientation);
-      } else {
-        window.addEventListener("pointermove", handlePointerMove);
-      }
-    })();
-
-    return () => {
-      mug.stop();
-      window.removeEventListener("deviceorientation", handleOrientation);
-      window.removeEventListener("pointermove", handlePointerMove);
-    };
+    return () => mug.stop();
   }, [fillPercent]);
 
-  async function requestGyro() {
-    const OrientationEvt = window.DeviceOrientationEvent as DeviceOrientationEventIOS;
-    try {
-      const result = await OrientationEvt.requestPermission?.();
-      if (result === "granted") {
-        orientationGranted = true;
-        setNeedsPermission(false);
-      }
-    } catch {
-      // permesso negato o non disponibile: resta il fallback al puntatore
-    }
-  }
-
   return (
-    <div className="flex flex-col items-center gap-2">
-      <canvas ref={canvasRef} style={{ width: 150, height: 212 }} aria-label="Boccale di birra" />
-      {needsPermission && (
-        <button
-          type="button"
-          onClick={requestGyro}
-          className="rounded-md border border-card-border bg-card px-3 py-1 text-xs text-foreground"
-        >
-          Attiva il giroscopio
-        </button>
-      )}
-    </div>
+    <canvas ref={canvasRef} style={{ width: 150, height: 212 }} aria-label="Boccale di birra" />
   );
 }
