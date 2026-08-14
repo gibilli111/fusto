@@ -6,7 +6,7 @@ Guida per Claude Code su questo repository.
 
 **Fusto** — webapp per un gruppo di amici: si fa una foto ogni volta che si beve una birra e la si carica in un feed condiviso. Accesso senza login complicato (nickname + PIN), profilo pubblico con un boccale che si riempie a livelli, classifica globale delle birre più loggate.
 
-Design: stile "calda da pub" — ambra su crema (light) / marrone scurissimo (dark), card arrotondate, font Fraunces (titoli) + Inter (corpo).
+Design: sfondo bianco/nero editoriale con accenti rosso/blu/verde (card a bordo sinistro colorato in stile KPI, niente pill arrotondate), font Barlow Condensed (numeri grandi, titoli) + IBM Plex Sans (corpo). Tema scuro alternativo verde bottiglia/ottone da pub anglo-irlandese, disponibile ma non predefinito. Il boccale del profilo è renderizzato in Canvas (vetro con manico, schiuma, condensa) e risponde al giroscopio del telefono.
 
 ## Stack
 
