@@ -41,3 +41,20 @@ Apri [http://localhost:3000](http://localhost:3000). Su un telefono in rete loca
 ## 5. Usa l'app
 
 Apri l'URL `*.vercel.app` da telefono → "Aggiungi a Home" per installarla come app. Manda il link agli amici: ognuno sceglie nickname + PIN al primo accesso e resta connesso sul proprio telefono.
+
+## Risoluzione problemi
+
+**"Function gen_salt/crypt/gen_random_bytes does not exist"** durante la creazione utente
+Su Supabase l'estensione `pgcrypto` vive nello schema `extensions`, non `public`. Le funzioni in `supabase/schema.sql` impostano già `search_path = public, extensions`; se hai eseguito una versione più vecchia dello schema, rilancia [`supabase/fix-search-path.sql`](./supabase/fix-search-path.sql) nell'SQL Editor (non tocca dati esistenti).
+
+**In locale (`npm run dev`), il telefono non carica la pagina o resta bloccato**
+Windows Firewall blocca di default le connessioni in ingresso da altri dispositivi della rete. Da PowerShell come amministratore:
+```powershell
+New-NetFirewallRule -DisplayName "Fusto dev server" -Direction Inbound -Protocol TCP -LocalPort 3000 -Action Allow -Profile Private
+```
+
+**In locale, il browser (PC o telefono) dice "sito non sicuro"**
+Normale: `npm run dev` serve su HTTP semplice, e i browser moderni avvisano per qualsiasi indirizzo che non sia `localhost` (l'IP della rete locale non conta come sicuro). Non è un bug — o clicchi "Avanzate → continua sul sito", oppure (meglio) testi direttamente sull'URL Vercel dopo il deploy, che è HTTPS vero.
+
+**`git push` resta bloccato o va in timeout**
+Il popup del browser per il login GitHub a volte si perde dietro altre finestre. Usa [GitHub CLI](https://cli.github.com/) invece: `gh auth login` (login via codice su pagina web, niente popup) seguito da `gh auth setup-git`.
