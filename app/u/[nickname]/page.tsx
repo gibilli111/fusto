@@ -113,7 +113,20 @@ export default function ProfilePage() {
   if (profile === undefined) {
     return (
       <main className="flex flex-1 items-center justify-center">
-        <span className="animate-bounce text-4xl">🍺</span>
+        <svg viewBox="0 0 100 120" width="36" height="43" className="animate-bounce text-red" aria-hidden="true">
+          <path
+            d="M15 10 h55 v90 a10 10 0 0 1 -10 10 h-35 a10 10 0 0 1 -10 -10 z"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="8"
+          />
+          <path
+            d="M70 30 h8 a10 10 0 0 1 10 10 v20 a10 10 0 0 1 -10 10 h-8"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="8"
+          />
+        </svg>
       </main>
     );
   }
@@ -122,7 +135,7 @@ export default function ProfilePage() {
     return (
       <main className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
         <p className="text-foreground">Profilo non trovato.</p>
-        <Link href="/" className="text-accent underline">
+        <Link href="/" className="text-red underline">
           Torna al feed
         </Link>
       </main>
@@ -149,7 +162,7 @@ export default function ProfilePage() {
               initial={profile.nickname.charAt(0)}
               size={64}
             />
-            <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-accent text-xs text-accent-foreground">
+            <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-red text-xs text-on-accent">
               {uploadingAvatar ? "…" : "＋"}
             </span>
             <input
@@ -169,11 +182,28 @@ export default function ProfilePage() {
           />
         )}
 
-        <h1 className="font-display text-2xl font-semibold text-foreground">{profile.nickname}</h1>
+        <h1 className="font-display text-2xl font-black uppercase tracking-wide text-foreground">
+          {profile.nickname}
+        </h1>
 
-        <BeerMug level={level} fillPercent={beersInLevel * 10} />
+        <BeerMug fillPercent={beersInLevel * 10} />
 
-        {isOwnProfile && <p className="text-sm text-muted">{total} birre in totale</p>}
+        <div className={`grid w-full gap-2 ${isOwnProfile ? "max-w-[220px] grid-cols-2" : "max-w-[110px] grid-cols-1"}`}>
+          <div className="border border-l-[3px] border-card-border border-l-red bg-card px-3 py-2 text-left">
+            <div className="font-display text-3xl font-black leading-none tabular-nums text-foreground">
+              {level}
+            </div>
+            <div className="mt-1 text-[10px] uppercase tracking-wide text-muted">Livello</div>
+          </div>
+          {isOwnProfile && (
+            <div className="border border-l-[3px] border-card-border border-l-blue bg-card px-3 py-2 text-left">
+              <div className="font-display text-3xl font-black leading-none tabular-nums text-foreground">
+                {total}
+              </div>
+              <div className="mt-1 text-[10px] uppercase tracking-wide text-muted">Birre totali</div>
+            </div>
+          )}
+        </div>
       </div>
 
       <TopBeers beers={topBeers} title={isOwnProfile ? "Le tue birre preferite" : "Le sue birre preferite"} />
@@ -181,7 +211,7 @@ export default function ProfilePage() {
       {posts.length > 0 ? (
         <div className="grid grid-cols-3 gap-2">
           {posts.map((post) => (
-            <div key={post.id} className="group relative aspect-square overflow-hidden rounded-lg bg-card-border">
+            <div key={post.id} className="group relative aspect-square overflow-hidden rounded-md bg-card-border">
               <Image src={post.photo_url} alt="" fill className="object-cover" sizes="200px" />
               {isOwnProfile && (
                 <button

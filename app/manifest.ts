@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Una foto per ogni birra, tra amici.",
     start_url: "/",
     display: "standalone",
-    background_color: "#fdf6ec",
-    theme_color: "#d97706",
+    background_color: "#ffffff",
+    theme_color: "#c0392b",
     icons: [
       {
         src: "/manifest-icon?size=192",

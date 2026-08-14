@@ -33,7 +33,7 @@ export default function PostCard({
   }
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-card-border bg-card shadow-sm">
+    <article className="overflow-hidden rounded-md border border-card-border bg-card">
       <div className="relative aspect-square w-full bg-card-border">
         <Image
           src={post.photo_url}
@@ -72,10 +72,14 @@ export default function PostCard({
         {(post.birra || post.luogo) && (
           <div className="flex flex-wrap gap-2 text-sm">
             {post.birra && (
-              <span className="rounded-full bg-accent/10 px-3 py-1 text-accent">🍺 {post.birra}</span>
+              <span className="border-l-[3px] border-green bg-background px-2 py-0.5 text-foreground">
+                {post.birra}
+              </span>
             )}
             {post.luogo && (
-              <span className="rounded-full bg-accent/10 px-3 py-1 text-accent">📍 {post.luogo}</span>
+              <span className="border-l-[3px] border-blue bg-background px-2 py-0.5 text-foreground">
+                {post.luogo}
+              </span>
             )}
           </div>
         )}
