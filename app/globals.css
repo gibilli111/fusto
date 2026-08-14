@@ -27,7 +27,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --background: #0d1712;
     --foreground: #eae4d6;
     --card: #142019;
@@ -37,6 +37,17 @@
     --blue: #7391c8;
     --green: #5a9873;
   }
+}
+
+:root[data-theme="dark"] {
+  --background: #0d1712;
+  --foreground: #eae4d6;
+  --card: #142019;
+  --card-border: #263a2d;
+  --muted: #85978d;
+  --red: #e0685a;
+  --blue: #7391c8;
+  --green: #5a9873;
 }
 
 body {

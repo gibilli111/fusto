@@ -39,6 +39,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="it"
       className={`${plex.variable} ${barlow.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try {
+  var t = localStorage.getItem('theme');
+  if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+} catch (e) {}`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
         <AuthProvider>
           <AuthGate>{children}</AuthGate>

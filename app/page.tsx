@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import PostCard from "@/components/PostCard";
 import TopBeers from "@/components/TopBeers";
 import Avatar from "@/components/Avatar";
+import ThemeToggle from "@/components/ThemeToggle";
 import Fab from "@/components/Fab";
 import type { FeedPost, TopBeer } from "@/lib/types";
 
@@ -62,16 +63,19 @@ export default function Home() {
           </h1>
         </div>
 
-        {session && (
-          <Link href={`/u/${encodeURIComponent(session.nickname)}`} aria-label="Il mio profilo">
-            <Avatar
-              url={ownAvatarUrl}
-              color={session.avatarColor}
-              initial={session.nickname.charAt(0)}
-              size={34}
-            />
-          </Link>
-        )}
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          {session && (
+            <Link href={`/u/${encodeURIComponent(session.nickname)}`} aria-label="Il mio profilo">
+              <Avatar
+                url={ownAvatarUrl}
+                color={session.avatarColor}
+                initial={session.nickname.charAt(0)}
+                size={34}
+              />
+            </Link>
+          )}
+        </div>
       </header>
 
       <TopBeers beers={topBeers} title="Le più loggate dal gruppo" />
