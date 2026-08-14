@@ -15,6 +15,7 @@ create table if not exists users (
   nickname text not null,
   pin_hash text not null,
   avatar_color text not null,
+  avatar_url text,
   created_at timestamptz not null default now()
 );
 
@@ -25,7 +26,7 @@ alter table users enable row level security;
 -- I dati pubblici (nickname, colore, data iscrizione) passano dalla view sotto.
 
 create or replace view public_profiles as
-  select id, nickname, avatar_color, created_at from users;
+  select id, nickname, avatar_color, avatar_url, created_at from users;
 
 grant select on public_profiles to anon;
 
@@ -205,6 +206,53 @@ $$;
 
 grant execute on function create_post(text, text, text, text) to anon;
 
+-- Cambia la foto profilo. Il file va prima caricato nel bucket "avatars"
+-- (permissivo come "beer-photos"): questa funzione è ciò che autorizza
+-- davvero l'associazione tra quel file e l'utente del token.
+create or replace function update_avatar(p_token text, p_avatar_url text)
+returns void
+language plpgsql security definer set search_path = public, extensions as $$
+declare
+  v_user_id uuid;
+begin
+  select user_id into v_user_id from sessions where token = p_token;
+  if v_user_id is null then
+    raise exception 'invalid_session';
+  end if;
+  if p_avatar_url is null or length(trim(p_avatar_url)) = 0 then
+    raise exception 'avatar_url_required';
+  end if;
+
+  update users set avatar_url = p_avatar_url where id = v_user_id;
+end;
+$$;
+
+grant execute on function update_avatar(text, text) to anon;
+
+-- Elimina un post, solo se appartiene a chi possiede il token.
+create or replace function delete_post(p_token text, p_post_id uuid)
+returns void
+language plpgsql security definer set search_path = public, extensions as $$
+declare
+  v_user_id uuid;
+  v_deleted uuid;
+begin
+  select user_id into v_user_id from sessions where token = p_token;
+  if v_user_id is null then
+    raise exception 'invalid_session';
+  end if;
+
+  delete from posts where id = p_post_id and user_id = v_user_id
+  returning id into v_deleted;
+
+  if v_deleted is null then
+    raise exception 'not_found_or_forbidden';
+  end if;
+end;
+$$;
+
+grant execute on function delete_post(text, uuid) to anon;
+
 -- Statistiche profilo: livello pubblico (ogni 10 birre) + percentuale di
 -- riempimento del boccale corrente. Il conteggio esatto NON è incluso qui:
 -- lo calcola il client solo quando il proprietario guarda il proprio profilo
@@ -221,29 +269,56 @@ create or replace view profile_levels as
 
 grant select on profile_levels to anon;
 
--- Feed: post pubblici già uniti al nickname/colore di chi li ha caricati.
+-- Feed: post pubblici già uniti al nickname/colore/avatar di chi li ha caricati.
+-- user_id serve solo lato client per capire se il post è tuo (mostrare "elimina").
 create or replace view feed_posts as
   select
-    p.id, p.photo_url, p.birra, p.luogo, p.created_at,
-    u.nickname, u.avatar_color
+    p.id, p.photo_url, p.birra, p.luogo, p.created_at, p.user_id,
+    u.nickname, u.avatar_color, u.avatar_url
   from posts p
   join users u on u.id = p.user_id
   order by p.created_at desc;
 
 grant select on feed_posts to anon;
 
--- Top 3 birre più loggate nel gruppo, aggregate e anonime.
+-- Top 3 birre più loggate nel gruppo. Niente conteggio esatto: solo "pct",
+-- una percentuale già normalizzata rispetto alla birra più loggata — il
+-- client può disegnare solo la posizione/lunghezza relativa, mai il numero.
 create or replace view top_beers as
-  select
-    (array_agg(birra order by created_at))[1] as name,
-    count(*) as total
-  from posts
-  where birra is not null
-  group by lower(birra)
-  order by count(*) desc
+  with counts as (
+    select
+      (array_agg(birra order by created_at))[1] as name,
+      count(*) as total
+    from posts
+    where birra is not null
+    group by lower(birra)
+  )
+  select name, round(100.0 * total / max(total) over (), 1) as pct
+  from counts
+  order by total desc
   limit 3;
 
 grant select on top_beers to anon;
+
+-- Stessa cosa, ma per le birre più loggate di un singolo utente (per il profilo).
+create or replace function top_beers_for_user(p_user_id uuid)
+returns table (name text, pct numeric)
+language sql stable as $$
+  with counts as (
+    select
+      (array_agg(birra order by created_at))[1] as name,
+      count(*) as total
+    from posts
+    where birra is not null and user_id = p_user_id
+    group by lower(birra)
+  )
+  select name, round(100.0 * total / max(total) over (), 1) as pct
+  from counts
+  order by total desc
+  limit 3;
+$$;
+
+grant execute on function top_beers_for_user(uuid) to anon;
 
 -- ============================================================
 -- STORAGE — bucket foto birre
@@ -260,6 +335,22 @@ create policy "beer photos are publicly readable"
 create policy "anyone can upload a beer photo"
   on storage.objects for insert to anon
   with check (bucket_id = 'beer-photos');
+
+-- ============================================================
+-- STORAGE — bucket foto profilo
+-- ============================================================
+
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true)
+on conflict (id) do nothing;
+
+create policy "avatars are publicly readable"
+  on storage.objects for select to anon
+  using (bucket_id = 'avatars');
+
+create policy "anyone can upload an avatar"
+  on storage.objects for insert to anon
+  with check (bucket_id = 'avatars');
 
 -- ============================================================
 -- SEED — birre comuni pre-caricate per l'autocomplete

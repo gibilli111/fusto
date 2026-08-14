@@ -31,7 +31,7 @@ export default function Home() {
         <h1 className="font-display text-2xl font-semibold text-foreground">Fusto</h1>
       </header>
 
-      <TopBeers beers={topBeers} />
+      <TopBeers beers={topBeers} title="Le più loggate dal gruppo" />
 
       {posts === null && <p className="py-12 text-center text-muted">Carico il feed…</p>}
 
@@ -43,7 +43,11 @@ export default function Home() {
 
       <div className="flex flex-col gap-4">
         {posts?.map((post) => (
-          <PostCard key={post.id} post={post} />
+          <PostCard
+            key={post.id}
+            post={post}
+            onDeleted={(id) => setPosts((prev) => prev?.filter((p) => p.id !== id) ?? prev)}
+          />
         ))}
       </div>
 
