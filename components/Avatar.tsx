@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 export default function Avatar({
   url,
   color,
@@ -13,12 +11,15 @@ export default function Avatar({
 }) {
   if (url) {
     return (
-      <span
-        className="relative shrink-0 overflow-hidden rounded-full"
+      // eslint-disable-next-line @next/next/no-img-element -- badge piccolo a dimensione fissa, l'immagine è già compressa lato client
+      <img
+        src={url}
+        alt=""
+        width={size}
+        height={size}
+        className="shrink-0 rounded-full object-cover"
         style={{ width: size, height: size }}
-      >
-        <Image src={url} alt="" fill className="object-cover" sizes={`${size}px`} />
-      </span>
+      />
     );
   }
 
